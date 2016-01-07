@@ -1,12 +1,17 @@
 package com.example.odunayo.narrator;
 
+import android.app.Fragment;
+import android.content.Intent;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,16 +52,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ListView mDrawerList;
     private ArrayAdapter<String> mAdapter;
+    private FrameLayout mapLayout;
 
     // splash screen for loading
     public View splash;
 
     // Session ids
-    private String authToken;
-    private String userId;
+    public String authToken;
+    public String userId;
+
+    public double latitude;
+    public double longitude;
 
     //Current user
     public User user;
+
+    private Button postButton;
 
     //Is User LoggedIn
     private boolean loggedIn = false;
@@ -70,33 +81,69 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        postButton = (Button)findViewById(R.id.post);
 
-//        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-//         mapFragment = (SupportMapFragment) getSupportFragmentManager()
-//                .findFragmentById(R.id.map);
-//
-//        mDrawerList = (ListView)findViewById(R.id.navList);
-//
-//        //Setup map if we already have the location
-//        if(mLastLocation != null){
-//            mapFragment.getMapAsync(this);
-//        }
-//
-//
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .build();
+        postButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentUtils.showStoryFragment(MapsActivity.this);
+            }
+        });
+        mDrawerList = (ListView)findViewById(R.id.navList);
+        mapLayout = (FrameLayout)findViewById(R.id.maplayout);
+        addDrawerItems();
 
-        addDrawerItems();//
+
+        setupGoogleMaps();
+        FragmentUtils.showLaunchScreenFragment(this);
+
 
     }
 
+    public void login(){
+        mapLayout.setVisibility(View.VISIBLE);
+        FragmentUtils.closeLaunchScreenFragment(MapsActivity.this);
+
+
+    }
+
+    public void logout(){
+
+        NarratorServerCalls.deleteSession(authToken, userId, new Callback() {
+            @Override
+            public void postExecute(JSONObject json, int status, String... strings) {
+            }
+        });
+
+        restartActivity();
+
+    }
+
+    private void restartActivity() {
+        try {
+            this.finish();
+        } catch (Exception e) {
+        }
+
+        // avoids having to clear every variable
+        Intent freshActivity = new Intent(this, MapsActivity.class);
+        startActivity(freshActivity);
+    }
+
     private void addDrawerItems() {
-        String[] osArray = { "Profile", "Narrations", "Favorites", "Help", "Settings" };
+        String[] osArray = {"My Stories", "Log Out"};
         mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
         mDrawerList.setAdapter(mAdapter);
+
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 1){
+                    logout();
+                }
+            }
+        });
+
     }
 
     public void setupGoogleMaps(){
@@ -111,13 +158,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
         }
 
-
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
 
+        mapFragment.getMapAsync(this);
     }
 
 
@@ -168,7 +215,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMyLocationEnabled(true);
 
-
         //Move camera to current location
        if (mLastLocation != null){
             LatLng currentLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
@@ -176,7 +222,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
         }
 
-        serverTest();
+
     }
 
     public void serverTest(){

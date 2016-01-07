@@ -16,6 +16,7 @@
             android:orientation="vertical">
 
             <FrameLayout
+                android:id="@+id/maplayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="gone">
@@ -28,14 +29,23 @@
                     tools:context="com.example.odunayo.narrator.MapsActivity" />
 
                 <Button
+                    android:id="@+id/post"
                     android:layout_width="100dp"
                     android:layout_height="45dp"
                     android:layout_margin="20dp"
                     android:layout_gravity="bottom|right"
                     android:text="Post"
                     android:background="@android:color/white">
+                </Button>
 
-
+                <Button
+                    android:id="@+id/find"
+                    android:layout_width="100dp"
+                    android:layout_height="45dp"
+                    android:layout_margin="20dp"
+                    android:layout_gravity="bottom|center"
+                    android:text="Find Stories"
+                    android:background="@android:color/white">
                 </Button>
 
             </FrameLayout>
@@ -51,5 +61,15 @@
             android:background="#ffeeeeee"/>
 
     </android.support.v4.widget.DrawerLayout>
+
+    <FrameLayout
+        android:id="@+id/overlay_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/launch_screen_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </FrameLayout>
