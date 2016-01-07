@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Narrator</string>
     <string name="title_activity_maps">Narrator</string>
+
+    <string name="user_id">session_user_id</string>
+    <string name="auth_token">session_auth_token</string>
+    <string name="session_preferences">SESSION</string>
+    <string name="active">ACTIVE</string>
 </resources>

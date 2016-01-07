@@ -1,7 +1,9 @@
 package com.example.odunayo.narrator;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -68,6 +70,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public User user;
 
     private Button postButton;
+    private Button getStoriesButton;
 
     //Is User LoggedIn
     private boolean loggedIn = false;
@@ -89,20 +92,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 FragmentUtils.showStoryFragment(MapsActivity.this);
             }
         });
+
         mDrawerList = (ListView)findViewById(R.id.navList);
         mapLayout = (FrameLayout)findViewById(R.id.maplayout);
         addDrawerItems();
-
-
         setupGoogleMaps();
-        FragmentUtils.showLaunchScreenFragment(this);
+
+        // get previous login info, if it exists
+        SharedPreferences sharedPrefs = getSharedPreferences(getString(R.string.session_preferences), Context.MODE_PRIVATE);
+        userId = sharedPrefs.getString(getString(R.string.user_id), null);
+        authToken = sharedPrefs.getString(getString(R.string.auth_token), null);
+
+
+        if (userId != null && authToken != null) {
+            loggedIn = true;
+            login();
+           // splash.setVisibility(View.VISIBLE);
+        }
+
+        if (!loggedIn){
+            FragmentUtils.showLaunchScreenFragment(this);
+        }
+        else {
+            login();
+        }
+
 
 
     }
 
     public void login(){
         mapLayout.setVisibility(View.VISIBLE);
+        if (FragmentUtils.launchScreen != null)
         FragmentUtils.closeLaunchScreenFragment(MapsActivity.this);
+
+
+        SharedPreferences sharedPrefs = getSharedPreferences(getString(R.string.session_preferences), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+
+        editor.putString(getString(R.string.user_id), userId);
+        editor.putString(getString(R.string.auth_token), authToken);
+        editor.commit();
+
+        loggedIn = true;
 
 
     }
@@ -115,9 +147,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        clearVariablesAndScreens();
+
         restartActivity();
 
     }
+
+    public void clearVariablesAndScreens() {
+        loggedIn = false;
+
+        SharedPreferences sharedPrefs = getSharedPreferences(getString(R.string.session_preferences), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+
+        editor.remove(getString(R.string.user_id));
+        editor.remove(getString(R.string.auth_token));
+
+        editor.commit();
+    }
+
 
     private void restartActivity() {
         try {
@@ -138,7 +185,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 1){
+                if (position == 1) {
                     logout();
                 }
             }
@@ -225,30 +272,55 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void serverTest(){
-     //  ServerTests.setActivty(this);
-     //   ServerTests.testLogin();
-     //   ServerTests.deleteSession();
-
-
-    }
-
-
 
     protected void onStart() {
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
         super.onStart();
+
+        // Store our shared preference
+        SharedPreferences sp = getSharedPreferences(getString(R.string.session_preferences), Context.MODE_PRIVATE);
+        SharedPreferences.Editor ed = sp.edit();
+        ed.putBoolean(getString(R.string.active), true);
+        ed.commit();
     }
 
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
+
+        // Store our shared preference
+        SharedPreferences sp = getSharedPreferences(getString(R.string.session_preferences), Context.MODE_PRIVATE);
+        SharedPreferences.Editor ed = sp.edit();
+        ed.putBoolean(getString(R.string.active), false);
+        ed.commit();
+
     }
+
+    @Override
+    public void onBackPressed() {
+        if (FragmentUtils.storyFragment != null){
+            FragmentUtils.closeStoryFragment(this);
+        }
+        else {
+            backOutOfApp();
+        }
+    }
+
+    private void backOutOfApp() {
+        super.onBackPressed();
+
+    }
+
+
 
     @Override
     public void onLocationChanged(Location location) {
 
     }
+
+
+
+
 }

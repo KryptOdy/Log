@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/Story_Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:gravity="center_horizontal"
+            android:text="Story"
+            android:textSize="50dp"/>
+
+        <FrameLayout
+            android:layout_height="200dp"
+            android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/story"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="20dp"
+                android:text="Story"/>
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/Comments_Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:gravity="center_horizontal"
+            android:text="Comments"
+            android:textSize="50dp"/>
+
+
+        <FrameLayout
+            android:layout_height="242dp"
+            android:layout_width="match_parent">
+
+            <ListView
+                android:id="@+id/comments_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/white" />
+
+            <!--<android.support.v4.widget.SwipeRefreshLayout-->
+                <!--android:id="@+id/swipe_container"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent">-->
+
+               <!-- -->
+            <!--</android.support.v4.widget.SwipeRefreshLayout>-->
+
+        </FrameLayout>
+
+
+    </LinearLayout>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageButton"
+        android:layout_gravity="right|top" />
+
+    <!--<TextView-->
+        <!--android:id="@+id/empty_alert_text"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:layout_margin="20dp"-->
+        <!--android:gravity="center"-->
+        <!--android:text="@string/empty_alert_message"-->
+        <!--android:textColor="@color/friendsyblue"-->
+        <!--android:textSize="@dimen/murmur_empty_text_size"-->
+        <!--android:visibility="gone" />-->
+
+</FrameLayout>

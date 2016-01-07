@@ -51,7 +51,7 @@ public class FragmentUtils {
         if (launchScreen != null) {
             FragmentManager fm = activity.getFragmentManager();
             FragmentTransaction transaction = fm.beginTransaction();
-//          transaction.setCustomAnimations(android.R.animator.fade_in, R.animator.no_change);
+           transaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out);
             transaction.remove(launchScreen);
             transaction.commitAllowingStateLoss();
             launchScreen = null;
@@ -73,6 +73,19 @@ public class FragmentUtils {
     public static void closeStoryFragment(MapsActivity activity) {
         closeOverlayElement(activity,storyFragment);
         storyFragment = null;
+    }
+
+    public static Fragment viewStoryFragment;
+
+    public static void showViewStoryFragment(MapsActivity activity){
+        viewStoryFragment =  new ViewStoryFragment();
+        showOverlayElement(activity, viewStoryFragment);
+    }
+
+    public static void closeViewStoryFragment(MapsActivity activity){
+        closeOverlayElement(activity,viewStoryFragment);
+        viewStoryFragment = null;
+
     }
 
 

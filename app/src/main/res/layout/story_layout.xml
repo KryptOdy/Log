@@ -6,7 +6,7 @@
     <EditText
         android:id="@+id/storytext"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="300dp"
         android:hint="Add your story here!">
         <requestFocus />
     </EditText>
@@ -16,7 +16,7 @@
         android:layout_width="100dp"
         android:layout_height="45dp"
         android:layout_margin="20dp"
-        android:layout_gravity="bottom|center"
+        android:layout_gravity="center"
         android:text="Post Story"
         android:background="@android:color/white">
     </Button>

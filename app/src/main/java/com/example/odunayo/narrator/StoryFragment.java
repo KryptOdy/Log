@@ -58,6 +58,17 @@ public class StoryFragment extends Fragment {
     public void postStory(){
         final String story = storyEdit.getText().toString();
 
+        if (story.length() == 0){
+            Toast.makeText(activity, "You can't send an empty story, Fill it up!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (story.length() <= 10){
+            Toast.makeText(activity, "Your story's a bit too short, why not add more?", Toast.LENGTH_SHORT).show();
+            return;
+
+        }
+
         NarratorServerCalls.postStory(story
                 , activity.latitude, activity.longitude, activity.authToken, activity.userId, new Callback() {
             @Override
