@@ -6,22 +6,12 @@
     android:orientation="vertical" >
 
     <EditText
-        android:id="@+id/username"
+        android:id="@+id/commentText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="insert user name">
-
+        android:hint="post comment">
         <requestFocus />
     </EditText>
-
-    <EditText
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="insert password">
-
-    </EditText>
-
 
 
 </LinearLayout>

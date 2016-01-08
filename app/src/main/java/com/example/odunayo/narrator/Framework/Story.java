@@ -135,6 +135,10 @@ public class Story implements Parcelable {
         return comments;
     }
 
+    public void addComment(Comment comment){
+        comments.add(comment);
+    }
+
     @Override
     public int describeContents() {
         return 0;

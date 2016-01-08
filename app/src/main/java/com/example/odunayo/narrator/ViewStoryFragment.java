@@ -1,8 +1,10 @@
 package com.example.odunayo.narrator;
 
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +18,13 @@ import android.widget.Toast;
 
 import com.example.odunayo.narrator.Framework.Comment;
 import com.example.odunayo.narrator.Framework.Story;
+import com.example.odunayo.narrator.Framework.UiUtils;
+import com.example.odunayo.narrator.Server.Callback;
+import com.example.odunayo.narrator.Server.NarratorServerCalls;
+import com.example.odunayo.narrator.Server.ServerUtils;
+
+import org.apache.http.HttpStatus;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -35,6 +44,7 @@ public class ViewStoryFragment extends Fragment {
     private static String storyString;
     private ListView commentsListView;
     private Story story;
+    private Button postComment;
 
     private CommentsAdapter commentsadapter;
 
@@ -73,6 +83,15 @@ public class ViewStoryFragment extends Fragment {
 
         commentsListView = (ListView)rootView.findViewById(R.id.comments_list);
         storyText = (TextView) rootView.findViewById(R.id.story);
+        postComment = (Button) rootView.findViewById(R.id.postComment);
+
+        postComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                postCommentDialog();
+
+            }
+        });
 
         commentsadapter = new CommentsAdapter(activity);
 
@@ -87,6 +106,82 @@ public class ViewStoryFragment extends Fragment {
 
     }
 
+    public void postCommentDialog(){
+
+        View signupView = getActivity().getLayoutInflater().inflate(R.layout.comment_dialog, null);
+        final EditText commentText = (EditText) signupView .findViewById(R.id.commentText);
+
+        AlertDialog.Builder alertDialogBuilder = UiUtils.getNewAlertDialogBuilder(activity);
+
+        alertDialogBuilder
+                .setView(signupView)
+                .setMessage("Post Comment")
+                .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        String sendComment = commentText.getText().toString();
+
+                        if (postCommement(sendComment)) {
+                            UiUtils.hideKeyboard(activity, commentText);
+                            dialog.cancel();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        UiUtils.hideKeyboard(activity, commentText);
+                        dialog.cancel();
+                    }
+                });
+
+
+        UiUtils.showAlertDialog(alertDialogBuilder);
+
+    }
+
+    public boolean postCommement(final String comment){
+
+        if (!ServerUtils.isConnected(activity)) {
+            Toast.makeText(activity, "No Internet Connection.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        NarratorServerCalls.postComment(comment, story.getStoryId(), activity.authToken, activity.userId, new Callback() {
+            @Override
+            public void postExecute(JSONObject json, int status,
+                                    String... strings) {
+                if (status == HttpStatus.SC_BAD_REQUEST || status == HttpStatus.SC_CREATED) {
+                    try {
+                        if (status == HttpStatus.SC_BAD_REQUEST) {
+                            Toast.makeText(activity, json.getString("message"), Toast.LENGTH_SHORT).show();
+                        } else if (status == HttpStatus.SC_CREATED) {
+
+                            String commentId = json.getString("comment_id");
+                            Comment newComment = new Comment(commentId, story.getStoryId(),
+                                    userId, comment, 0, false, null);
+
+                            story.addComment(newComment);
+                            addCommentToAdapter(newComment);
+
+                            Toast.makeText(activity, "Successfully posted your comment!", Toast.LENGTH_SHORT).show();
+
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(activity, "Bad Connection", Toast.LENGTH_SHORT).show();
+                    }
+                } else
+                    Toast.makeText(activity, "Bad Connection, HTTPStatus = " + status, Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+
+
+        return true;
+
+    }
+
     public static void setStory(String story){
         storyString = story;
         storyText.setText(storyString);
@@ -98,6 +193,11 @@ public class ViewStoryFragment extends Fragment {
         for (int i = 0; i < comments.size(); i++){
            commentsadapter.add(comments.get(i));
         }
+    }
+
+    public void addCommentToAdapter(Comment comment){
+        if (comment != null)
+        commentsadapter.add(comment);
     }
 
     public static class CommentsAdapter extends ArrayAdapter<Comment> {
@@ -148,8 +248,6 @@ public class ViewStoryFragment extends Fragment {
 
 
           //  Toast.makeText(getContext(), "Count of comment " + getCount(), Toast.LENGTH_SHORT).show();
-
-
 
 
             return convertView;
