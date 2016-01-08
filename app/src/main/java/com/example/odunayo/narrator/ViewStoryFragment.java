@@ -12,8 +12,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.odunayo.narrator.Framework.Comment;
+import com.example.odunayo.narrator.Framework.Story;
 
 import java.util.ArrayList;
 
@@ -29,11 +31,35 @@ public class ViewStoryFragment extends Fragment {
     private String authToken;
     private String userId;
 
-    private TextView storyText;
-    private String storyString;
+    private static TextView storyText;
+    private static String storyString;
     private ListView commentsListView;
+    private Story story;
 
     private CommentsAdapter commentsadapter;
+
+    public static ViewStoryFragment newInstance(Story story) {
+        final ViewStoryFragment f = new ViewStoryFragment();
+
+        final Bundle args = new Bundle();
+        args.putParcelable("Story", story);
+        f.setArguments(args);
+
+        return f;
+    }
+
+    //unused constructor
+    public ViewStoryFragment() {
+    }
+
+    //Get Story from Bundle
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        story = (Story) (getArguments() != null ? getArguments().getParcelable("Story") : null);
+
+    }
 
 
     @Override
@@ -52,11 +78,16 @@ public class ViewStoryFragment extends Fragment {
 
         commentsListView.setAdapter(commentsadapter);
 
+        if (story.getStoryContent() != null)
+        storyText.setText(story.getStoryContent());
+        setComments(story.getComments());
+
+
         return rootView;
 
     }
 
-    public void setStory(String story){
+    public static void setStory(String story){
         storyString = story;
         storyText.setText(storyString);
 
@@ -99,7 +130,6 @@ public class ViewStoryFragment extends Fragment {
 
                 convertView = inflater.inflate(R.layout.comment_layout, parent, false);
 
-
                 viewHolder.comment = (TextView) convertView.findViewById(R.id.comment_text);
                 viewHolder.numUpvotes = (Button) convertView.findViewById(R.id.upvote_text);
 
@@ -112,7 +142,13 @@ public class ViewStoryFragment extends Fragment {
             final Comment comment = getItem(position);
 
             viewHolder.comment.setText(comment.getCommentContent());
-            viewHolder.numUpvotes.setText(comment.getUpvotes());
+           // Toast.makeText(getContext(),"Num of upvotes " + comment.getUpvotes() , Toast.LENGTH_SHORT).show();
+            viewHolder.numUpvotes.setText(String.valueOf(comment.getUpvotes()));
+
+
+
+          //  Toast.makeText(getContext(), "Count of comment " + getCount(), Toast.LENGTH_SHORT).show();
+
 
 
 

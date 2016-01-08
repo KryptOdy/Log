@@ -1,5 +1,7 @@
 package com.example.odunayo.narrator.Framework;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class Story {
+public class Story implements Parcelable {
     private final String TAG = "Story";
 
     private String storyId;
@@ -75,6 +77,23 @@ public class Story {
         }
     }
 
+    private Story (Parcel in) {
+        this.storyId = in.readString();
+        this.userId = in.readString();
+        this.storyContent = in.readString();
+        this.latitude = in.readDouble();
+        this.longitude = in.readDouble();
+        this.timeSincePosted = in.readString();
+        this.numUpvotes= in.readInt();
+
+        this.comments = new ArrayList<Comment>();
+        in.readList(this.comments, Comment.class.getClassLoader());
+
+        this.distance = in.readDouble();
+
+    }
+
+
     public String getStoryId(){
         return storyId;
     }
@@ -115,6 +134,38 @@ public class Story {
     public ArrayList<Comment> getComments(){
         return comments;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.storyId);
+        dest.writeString(this.userId);
+        dest.writeString(this.storyContent);
+        dest.writeDouble(this.latitude);
+        dest.writeDouble(this.longitude);
+        dest.writeString(this.timeSincePosted);
+        dest.writeInt(this.numUpvotes);
+        dest.writeList(this.comments);
+        dest.writeDouble(this.distance);
+
+
+    }
+
+
+    public static final Parcelable.Creator<Story> CREATOR = new Parcelable.Creator<Story>() {
+        public Story createFromParcel(Parcel in) {
+            return new Story(in);
+        }
+
+        public Story[] newArray(int size) {
+            return new Story[size];
+        }
+    };
+
 
 
 }

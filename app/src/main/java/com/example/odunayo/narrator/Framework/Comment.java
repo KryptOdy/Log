@@ -1,10 +1,12 @@
 package com.example.odunayo.narrator.Framework;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import org.json.JSONObject;
 
-public class Comment {
+public class Comment implements Parcelable{
     private final String TAG = "Comment";
 
     private String commentId;
@@ -43,6 +45,16 @@ public class Comment {
         }
     }
 
+    private Comment (Parcel in) {
+        this.commentId = in.readString();
+        this.postId = in.readString();
+        this.userId = in.readString();
+        this.commentContent = in.readString();
+        this.upvotes = in.readInt();
+        this.likedbyUser = in.readByte() == 1;
+        this.dateTime = in.readString();
+    }
+
     public String getCommentId(){
         return commentId;
     }
@@ -70,6 +82,33 @@ public class Comment {
     public int getUpvotes(){
         return upvotes;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.commentId);
+        dest.writeString(this.postId);
+        dest.writeString(this.userId);
+        dest.writeString(this.commentContent);
+        dest.writeInt(this.upvotes);
+        dest.writeString(this.dateTime);
+        dest.writeByte(this.likedbyUser ? (byte) 1 : (byte) 0);
+    }
+
+    public static final Parcelable.Creator<Comment> CREATOR = new Parcelable.Creator<Comment>() {
+        public Comment createFromParcel(Parcel in) {
+            return new Comment(in);
+        }
+
+        public Comment[] newArray(int size) {
+            return new Comment[size];
+        }
+    };
+
 
 
 

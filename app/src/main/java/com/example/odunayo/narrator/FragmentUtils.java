@@ -4,8 +4,10 @@ package com.example.odunayo.narrator;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.view.View;
 
 import com.example.odunayo.narrator.Framework.Log;
+import com.example.odunayo.narrator.Framework.Story;
 import com.example.odunayo.narrator.Framework.UiUtils;
 
 public class FragmentUtils {
@@ -77,8 +79,8 @@ public class FragmentUtils {
 
     public static Fragment viewStoryFragment;
 
-    public static void showViewStoryFragment(MapsActivity activity){
-        viewStoryFragment =  new ViewStoryFragment();
+    public static void showViewStoryFragment(MapsActivity activity, Story story){
+        viewStoryFragment =  ViewStoryFragment.newInstance(story);
         showOverlayElement(activity, viewStoryFragment);
     }
 
