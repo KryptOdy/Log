@@ -45,6 +45,7 @@ public class ViewStoryFragment extends Fragment {
     private ListView commentsListView;
     private Story story;
     private Button postComment;
+    private Button upvoteStory;
 
     private CommentsAdapter commentsadapter;
 
@@ -62,7 +63,7 @@ public class ViewStoryFragment extends Fragment {
     public ViewStoryFragment() {
     }
 
-    //Get Story from Bundle
+    //Get Story saved from Bundle
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +85,24 @@ public class ViewStoryFragment extends Fragment {
         commentsListView = (ListView)rootView.findViewById(R.id.comments_list);
         storyText = (TextView) rootView.findViewById(R.id.story);
         postComment = (Button) rootView.findViewById(R.id.postComment);
+        upvoteStory = (Button) rootView.findViewById(R.id.upvote_story);
+
+        upvoteStory.setText(String.valueOf(story.getNumUpvotes()));
+
+        upvoteStory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                boolean wasLiked = story.getLikedByUser();
+                story.setLikedByUser(!wasLiked);
+                story.setNumUpvotes(story.getNumUpvotes() + (wasLiked ? -1 : 1));
+
+                upvoteStory(story);
+                upvoteStory.setText(String.valueOf(story.getNumUpvotes()));
+
+            }
+        });
+
 
         postComment.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,7 +140,7 @@ public class ViewStoryFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int id) {
                         String sendComment = commentText.getText().toString();
 
-                        if (postCommement(sendComment)) {
+                        if (postComment(sendComment)) {
                             UiUtils.hideKeyboard(activity, commentText);
                             dialog.cancel();
                         }
@@ -139,7 +158,7 @@ public class ViewStoryFragment extends Fragment {
 
     }
 
-    public boolean postCommement(final String comment){
+    public boolean postComment(final String comment){
 
         if (!ServerUtils.isConnected(activity)) {
             Toast.makeText(activity, "No Internet Connection.", Toast.LENGTH_SHORT).show();
@@ -195,12 +214,71 @@ public class ViewStoryFragment extends Fragment {
         }
     }
 
+    //Add individual Comment to the adapter and update the List
     public void addCommentToAdapter(Comment comment){
         if (comment != null)
         commentsadapter.add(comment);
     }
 
-    public static class CommentsAdapter extends ArrayAdapter<Comment> {
+    public void upvoteStory(Story story){
+
+        NarratorServerCalls.upvoteStory(story.getStoryId(), activity.authToken, activity.userId, new Callback() {
+            @Override
+            public void postExecute(JSONObject json, int status,
+                                    String... strings) {
+                if (status == HttpStatus.SC_BAD_REQUEST || status == HttpStatus.SC_CREATED) {
+                    try {
+                        if (status == HttpStatus.SC_BAD_REQUEST) {
+                            Toast.makeText(activity, json.getString("message"), Toast.LENGTH_SHORT).show();
+                        } else if (status == HttpStatus.SC_CREATED) {
+                            int numUpvotes = json.getInt("num_upvotes");
+
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(activity, "Bad Connection.3", Toast.LENGTH_SHORT).show();
+                    }
+                } else
+                    Toast.makeText(activity, "Bad Connection.4: Status = " + status, Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+    }
+
+    public void upvoteComment(Comment comment){
+
+
+        NarratorServerCalls.upvoteComment(comment.getCommentId(), activity.authToken, activity.userId, new Callback() {
+            @Override
+            public void postExecute(JSONObject json, int status,
+                                    String... strings) {
+                if (status == HttpStatus.SC_BAD_REQUEST || status == HttpStatus.SC_CREATED) {
+                    try {
+                        if (status == HttpStatus.SC_BAD_REQUEST) {
+                            Toast.makeText(activity, json.getString("message"), Toast.LENGTH_SHORT).show();
+                        } else if (status == HttpStatus.SC_CREATED) {
+
+                            int numUpvotes = json.getInt("num_upvotes");
+
+//                            Toast.makeText(activity, "NumUpvotes Comment " + numUpvotes, Toast.LENGTH_SHORT).show();
+
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(activity, "Bad Connection.3", Toast.LENGTH_SHORT).show();
+                    }
+                } else
+                    Toast.makeText(activity, "Bad Connection: Status " + status, Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+
+    }
+
+
+
+    public class CommentsAdapter extends ArrayAdapter<Comment> {
         // keeps track of the context reference
         private Context context;
 
@@ -208,7 +286,6 @@ public class ViewStoryFragment extends Fragment {
         private class ViewHolder {
             TextView comment;
             Button numUpvotes;
-
 
         }
 
@@ -242,8 +319,22 @@ public class ViewStoryFragment extends Fragment {
             final Comment comment = getItem(position);
 
             viewHolder.comment.setText(comment.getCommentContent());
-           // Toast.makeText(getContext(),"Num of upvotes " + comment.getUpvotes() , Toast.LENGTH_SHORT).show();
             viewHolder.numUpvotes.setText(String.valueOf(comment.getUpvotes()));
+
+            viewHolder.numUpvotes.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    boolean wasLiked = comment.getLikedByUser();
+                    comment.setLikedByUser(!wasLiked);
+                    comment.setNumUpvotes(comment.getUpvotes() + (wasLiked ? -1 : 1));
+
+                    upvoteComment(comment);
+
+                    commentsadapter.notifyDataSetChanged();
+
+                }
+            });
 
 
 

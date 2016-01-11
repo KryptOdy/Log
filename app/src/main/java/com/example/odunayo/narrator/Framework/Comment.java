@@ -39,6 +39,7 @@ public class Comment implements Parcelable{
             this.commentContent = json.getString("comment_content");
             this.dateTime = json.getString("datetime");
             this.upvotes = json.getInt("num_upvotes");
+            this.likedbyUser = json.getBoolean("self_has_upvoted");
         } catch (Exception e) {
             Log.e(TAG, "json error");
 
@@ -82,6 +83,20 @@ public class Comment implements Parcelable{
     public int getUpvotes(){
         return upvotes;
     }
+
+    public void setNumUpvotes(int upvotes){
+        this.upvotes = upvotes;
+    }
+
+    public boolean getLikedByUser() {
+        return likedbyUser;
+    }
+
+    public void setLikedByUser(boolean isliked){
+        likedbyUser = isliked;
+
+    }
+
 
     @Override
     public int describeContents() {

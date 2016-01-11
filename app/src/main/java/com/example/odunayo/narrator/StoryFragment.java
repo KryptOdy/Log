@@ -86,6 +86,7 @@ public class StoryFragment extends Fragment {
 
 //                            activity.user.addStory(newStory);
                             FragmentUtils.closeStoryFragment(activity);
+                            activity.getStoriesInBackGround();
                             Toast.makeText(activity, "Successfully Posted a Story!", Toast.LENGTH_SHORT).show();
 
                         }

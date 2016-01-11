@@ -24,10 +24,12 @@ public class Story implements Parcelable {
     private String timeSincePosted;
     private int numUpvotes;
     private ArrayList<Comment> comments;
+    private boolean likedbyUser;
     private double distance;
 
     public Story (String storyId, String userId, String storyContent, double latitude, double longitude,
-                  String timeSincePosted, int numUpvotes, ArrayList<Comment> comments, double distance){
+                  String timeSincePosted, int numUpvotes, ArrayList<Comment> comments, double distance,
+                    boolean likedbyUser){
 
         this.storyId = storyId;
         this.userId = userId;
@@ -38,6 +40,7 @@ public class Story implements Parcelable {
         this.numUpvotes = numUpvotes;
         this.comments = comments;
         this.distance = distance;
+        this.likedbyUser = likedbyUser;
     }
 
     public Story(JSONObject json) {
@@ -51,6 +54,7 @@ public class Story implements Parcelable {
             this.timeSincePosted = json.getString("time_since_posted");
             this.numUpvotes = json.getInt("num_upvotes");
             this.distance = json.getDouble("distance");
+            this.likedbyUser = json.getBoolean("self_has_upvoted");
         } catch (Exception e) {
             Log.e(TAG, "json story error");
         }
@@ -85,6 +89,7 @@ public class Story implements Parcelable {
         this.longitude = in.readDouble();
         this.timeSincePosted = in.readString();
         this.numUpvotes= in.readInt();
+        this.likedbyUser = in.readByte() == 1;
 
         this.comments = new ArrayList<Comment>();
         in.readList(this.comments, Comment.class.getClassLoader());
@@ -139,6 +144,16 @@ public class Story implements Parcelable {
         comments.add(comment);
     }
 
+    public boolean getLikedByUser() {
+        return likedbyUser;
+    }
+
+    public void setLikedByUser(boolean isliked){
+        likedbyUser = isliked;
+
+    }
+
+
     @Override
     public int describeContents() {
         return 0;
@@ -155,6 +170,7 @@ public class Story implements Parcelable {
         dest.writeInt(this.numUpvotes);
         dest.writeList(this.comments);
         dest.writeDouble(this.distance);
+        dest.writeByte(this.likedbyUser ? (byte) 1 : (byte) 0);
 
 
     }

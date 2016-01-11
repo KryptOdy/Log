@@ -91,11 +91,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Stories by User
     public ArrayList<Story> localStories;
 
+    private Map<Marker, Story> storyHashMap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+      //  splash = findViewById(R.id.loading_splash);
 
         postButton = (Button)findViewById(R.id.post);
         getStoriesButton = (Button)findViewById(R.id.find);
@@ -117,6 +121,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mDrawerList = (ListView)findViewById(R.id.navList);
         mapLayout = (FrameLayout)findViewById(R.id.maplayout);
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+
         addDrawerItems();
         createLocationRequest();
         setupGoogleMaps();
@@ -126,11 +138,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userId = sharedPrefs.getString(getString(R.string.user_id), null);
         authToken = sharedPrefs.getString(getString(R.string.auth_token), null);
 
+        storyHashMap = new HashMap<Marker, Story>();
 
         if (userId != null && authToken != null) {
             loggedIn = true;
-            login();
            // splash.setVisibility(View.VISIBLE);
+            login();
         }
 
         if (!loggedIn){
@@ -164,7 +177,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
 
                             if (storiesList.size() == 0) {
-                                Toast.makeText(MapsActivity.this, "Sorry there's no Stories around you!", Toast.LENGTH_SHORT).show();
+                               // Toast.makeText(MapsActivity.this, "Sorry there's no Stories around you!", Toast.LENGTH_SHORT).show();
                             } else {
 
                                 Toast.makeText(MapsActivity.this, "There are " + storiesList.size() + " Stories around you!", Toast.LENGTH_SHORT).show();
@@ -176,7 +189,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Toast.makeText(MapsActivity.this, "Bad Connection1", Toast.LENGTH_SHORT).show();
                     }
                 } else
-                    Toast.makeText(MapsActivity.this, "Bad Connection2", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MapsActivity.this, "Bad Connection : Status " + status, Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+    }
+
+    //Get Stories within certain radius and place the markers on the map
+    public void getStoriesInBackGround(){
+
+
+        NarratorServerCalls.getStories(3, latitude, longitude, authToken, userId, new Callback() {
+            @Override
+            public void postExecute(JSONObject json, int status,
+                                    String... strings) {
+                if (status == HttpStatus.SC_BAD_REQUEST || status == HttpStatus.SC_OK) {
+                    try {
+                        if (status == HttpStatus.SC_BAD_REQUEST) {
+                        } else if (status == HttpStatus.SC_OK) {
+
+                            ArrayList<Story> storiesList = new ArrayList<Story>();
+                            JSONArray stories = json.getJSONArray("stories");
+
+                            for (int i = 0; i < stories.length(); i++) {
+                                Story newStory = new Story(stories.getJSONObject(i));
+                                storiesList.add(newStory);
+                            }
+
+                                postStoriesToMap(storiesList);
+
+
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(MapsActivity.this, "Bad Connection1", Toast.LENGTH_SHORT).show();
+                    }
+                } else
+                    Toast.makeText(MapsActivity.this, "Bad Connection : Status " + status, Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -187,23 +236,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void postStoriesToMap(ArrayList<Story> stories){
 
-        final Map<Marker, Story> storyHashMap = new HashMap<Marker, Story>();
-
         Log.d(TAG, "Stories length" + stories.size());
-//        Toast.makeText(MapsActivity.this, "Length of Array " + stories.size(), Toast.LENGTH_SHORT).show();
         for  (Story story : stories){
 
             LatLng location = new LatLng(story.getLatitude(), story.getLongitude());
             Log.d(TAG, "Story lat " + story.getLatitude() + "Story long " + story.getLongitude());
 
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .title("Story")
-                    .snippet("Test Snippet")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                    .position(location));
+            //First check if Story is already in the map
+            if (!storyHashMap.containsValue(story)){
+                //Map Marker to a specific Story
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .title("Story")
+                        .snippet("Test Snippet")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                        .position(location));
 
-            //Map Marker to a specific Story
-            storyHashMap.put(marker, story);
+                storyHashMap.put(marker, story);
+
+            }
+
         }
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -215,24 +266,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 FragmentUtils.showViewStoryFragment(MapsActivity.this, story);
 
-                //Toast.makeText(MapsActivity.this, "Story Id " + story.getStoryId(), Toast.LENGTH_SHORT).show();
-
                 return true;
             }
 
         });
 
-        Toast.makeText(MapsActivity.this, "Loaded Stories!", Toast.LENGTH_SHORT).show();
+       // Toast.makeText(MapsActivity.this, "Loaded Stories!", Toast.LENGTH_SHORT).show();
 
+    }
+
+    public void closeSplash() {
+        if (splash != null)
+            splash.setVisibility(View.GONE);
     }
 
 
 
     public void login(){
+
+
         mapLayout.setVisibility(View.VISIBLE);
         if (FragmentUtils.launchScreen != null)
         FragmentUtils.closeLaunchScreenFragment(MapsActivity.this);
-
 
         SharedPreferences sharedPrefs = getSharedPreferences(getString(R.string.session_preferences), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -242,8 +297,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         editor.commit();
 
         loggedIn = true;
-
-
+       // closeSplash();
+        getStories();
 
     }
 
@@ -312,13 +367,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(mLastLocation != null){
             mapFragment.getMapAsync(this);
         }
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
 
     }
 
@@ -399,6 +447,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                    + " " + mLastLocation.getLongitude() , Toast.LENGTH_SHORT).show();
             LatLng currentLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+            if (loggedIn)
+                getStoriesInBackGround();
         }
         else{
             Toast.makeText(MapsActivity.this, "Failed to get location", Toast.LENGTH_SHORT).show();
